@@ -81,4 +81,4 @@ This document defines how the AI Employee should behave. Claude Code reads this 
 - [ ] Verify all watchers are running
 
 ---
-*AI Employee v0.1 — Bronze Tier*
+*AI Employee v0.2 — Silver Tier*
