@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  # PostgreSQL database for Odoo
+  db:
+    image: postgres:15-alpine
+    container_name: odoo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: ai_employee_db
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Odoo 19 Community
+  odoo:
+    image: odoo:17
+    container_name: odoo
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8069:8069"
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: odoo
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./odoo_config:/etc/odoo
+      - ./odoo_addons:/mnt/extra-addons
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # AI Employee (Gold Tier)
+  ai-employee:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-employee-gold
+    container_name: ai-employee
+    restart: unless-stopped
+    depends_on:
+      odoo:
+        condition: service_healthy
+    volumes:
+      - ./AI_Employee_Vault:/app/AI_Employee_Vault
+      - ./credentials:/app/credentials
+    env_file:
+      - .env
+    environment:
+      VAULT_PATH: /app/AI_Employee_Vault
+      DROP_FOLDER_PATH: /app/AI_Employee_Vault/Drop_Folder
+      GMAIL_CREDENTIALS_PATH: /app/credentials/gmail_credentials.json
+      GMAIL_TOKEN_PATH: /app/credentials/gmail_token.json
+      LINKEDIN_SESSION_PATH: /app/credentials/linkedin_session
+      ODOO_URL: http://odoo:8069
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  odoo-db-data:
+  odoo-web-data:

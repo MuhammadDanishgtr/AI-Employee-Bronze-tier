@@ -30,17 +30,21 @@ RUN apt-get update && apt-get install -y \
     libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
+# Copy and install Python dependencies (Gold Tier)
 COPY pyproject.toml .
 RUN pip install --no-cache-dir \
-    watchdog>=4.0.0 \
-    google-auth>=2.0.0 \
-    google-auth-oauthlib>=1.0.0 \
-    google-api-python-client>=2.0.0 \
-    apscheduler>=3.10.0 \
-    playwright>=1.40.0 \
-    python-dotenv>=1.0.0 \
-    mcp>=1.0.0
+    "watchdog>=4.0.0" \
+    "google-auth>=2.0.0" \
+    "google-auth-oauthlib>=1.0.0" \
+    "google-api-python-client>=2.0.0" \
+    "apscheduler>=3.10.0" \
+    "playwright>=1.40.0" \
+    "python-dotenv>=1.0.0" \
+    "mcp>=1.0.0" \
+    "tweepy>=4.14.0" \
+    "tenacity>=8.2.0" \
+    "requests>=2.31.0" \
+    "requests-oauthlib>=1.3.0"
 
 # Install Playwright Chromium browser
 RUN playwright install chromium
@@ -61,6 +65,9 @@ RUN mkdir -p AI_Employee_Vault/Drop_Folder \
              AI_Employee_Vault/Approved \
              AI_Employee_Vault/Rejected \
              AI_Employee_Vault/Briefings \
+             AI_Employee_Vault/Audits/Weekly \
+             AI_Employee_Vault/Error_Queue \
+             AI_Employee_Vault/Business_Domain \
              credentials
 
 # Vault as volume so host can interact with files
@@ -77,9 +84,15 @@ ENV LINKEDIN_SESSION_PATH=/app/credentials/linkedin_session
 ENV SCHEDULE_GMAIL_INTERVAL=120
 ENV SCHEDULE_LINKEDIN_INTERVAL=900
 ENV SCHEDULE_DASHBOARD_INTERVAL=600
+ENV SCHEDULE_ODOO_INTERVAL=3600
+ENV SCHEDULE_FACEBOOK_INTERVAL=600
+ENV SCHEDULE_TWITTER_INTERVAL=600
+ENV SCHEDULE_ERROR_RECOVERY_INTERVAL=1800
+ENV AUDIT_SCHEDULE_DAY=mon
+ENV AUDIT_SCHEDULE_HOUR=8
 ENV CHECK_INTERVAL=10
 
-# Run the orchestrator (manages all watchers via APScheduler)
+# Run the Gold Tier orchestrator (manages all 8 scheduled jobs)
 CMD ["python", "watchers/orchestrator.py", \
      "--vault", "/app/AI_Employee_Vault", \
      "--drop", "/app/AI_Employee_Vault/Drop_Folder"]
