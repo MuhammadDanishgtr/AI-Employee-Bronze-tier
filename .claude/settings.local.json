@@ -1,0 +1,10 @@
+{
+  "enabledMcpjsonServers": [
+    "gmail-send",
+    "odoo-api",
+    "facebook-api",
+    "twitter-api",
+    "audit-generator",
+    "error-recovery"
+  ]
+}
